@@ -59,5 +59,16 @@ class LoginPage(BaseClass):
         except NoSuchElementException:
             return False  # If element is not found, return False instead of failing
 
+    def login(self, email, password):
+        """Reusable login function to avoid duplication."""
+        self.open_menu_myaccount()
+
+        if self.check_if_logout_button():
+            self.get_logout_button().click()
+            self.open_menu_myaccount()
+
+        self.open_login_page()
+        self.enter_credentials(email, password)
+        self.click_submit()
 
 
