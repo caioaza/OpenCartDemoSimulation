@@ -44,6 +44,9 @@ class CartPage(BaseClass):
         # Using find_elements here instead of find_element because if there's no checkout button I'll have an empty list only instead of an error of no such element, if it was with find_element
         return self.driver.find_elements(*CartPage.checkout_button)
 
+    def click_checkout_button(self):
+        self.safe_click(CartPage.checkout_button)
+
     def click_update_quantity_button(self, product):
         return product.find_element(*CartPage.product_update_quantity_button).click()
 

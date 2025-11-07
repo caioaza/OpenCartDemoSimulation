@@ -8,6 +8,12 @@ from pytest_html import extras  # Import pytest_html extras
 import logging
 from selenium.common.exceptions import SessionNotCreatedException
 
+from OpenCartDemoSimulation.pageObjects.LoginPage import LoginPage
+from OpenCartDemoSimulation.pageObjects.ProductsPage import ProductsPage
+from OpenCartDemoSimulation.tests.test_login import TestLogin
+from OpenCartDemoSimulation.utilities.configurations import user_opencart_credentials
+
+
 #method found on pytest docs to pass command line options at run time in terminal. Adapted to call multiple browsers when testing
 def pytest_addoption(parser):
     parser.addoption(
@@ -52,7 +58,7 @@ def setup(request):
         driver.set_window_size(width, height)
         driver.get(url)
         request.cls.driver = driver
-        yield driver
+        yield driver #returns driver
 
     except SessionNotCreatedException as e:
         print(f"SessionNotCreatedException: {e.msg}")  # Print only the relevant error message
@@ -119,3 +125,19 @@ def _capture_screenshot(driver, name):
         driver.get_screenshot_as_file(screenshot_path)
     except Exception as e:
         logging.error(f"Failed to capture screenshot: {e}")
+
+@pytest.fixture
+def logged_in_user(setup): #setup contains driver
+    login_page = LoginPage(setup)
+    email = user_opencart_credentials["email"]
+    password = user_opencart_credentials["password"]
+    login_page.login(email=email,password=password)
+    time.sleep(3)
+    return setup  # driver is now in an authenticated session
+
+@pytest.fixture
+def cart_with_products(logged_in_user): # Pytest sees that cart_with_product needs something named logged_in_user, so before running cart_with_product, it runs logged_in_user first and returns whatever that fixture returned, in this case: driver
+    products_page = ProductsPage(logged_in_user) #logged_in_user contains driver
+    products_to_cart = {"iPod Classic", "iPod Nano", "iPod Touch"}
+    products_page.add_products_to_the_cart(products_to_cart)
+    return logged_in_user  # driver now has 3 items in cart, ready for checkout
